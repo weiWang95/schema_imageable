@@ -1,6 +1,8 @@
 require_relative "element/table"
 require_relative "element/reference"
 require_relative "image"
+require_relative "strategy"
+require_relative "path_finder"
 
 module SchemaImageable
   class Schema
@@ -15,18 +17,16 @@ module SchemaImageable
       end
 
       def add_foreign_key(to, from, **options)
-        references << Element::Reference.new(from, to, options)
+        references << Element::Reference.new(self, table_map[from], table_map[to], options)
       end
     end
     include DSL
 
-    EXTENSION_WHITE_LIST = %w(jpg png jpeg)
+    attr_reader :path, :options, :tables, :references
+    attr_accessor :image, :path_map
 
-    attr_reader :path, :output, :options, :tables, :references
-
-    def initialize(path, output = ".", **options)
+    def initialize(path, **options)
       @path       = path
-      @output     = output
       @options    = options
       @tables     = []
       @references = []
@@ -35,15 +35,19 @@ module SchemaImageable
     def generate
       load_schema_data
 
-      sort_tables_by_score!
-
       generate_schema_image
-
-      write_schema_image
     end
 
-    def image
-      @image ||= Image.new(options)
+    def table_map
+      @table_map ||= tables.each_with_object({}) { |table, map| map[table.name] = table }
+    end
+
+    def table_include_position?(position)
+      tables.any? { |table| table.include_position?(position) }
+    end
+
+    def path_map
+      @path_map ||= SchemaImageable::PathFinder::Map.new(self)
     end
 
     private
@@ -56,41 +60,7 @@ module SchemaImageable
       end
 
       def generate_schema_image
-        x, y = 60, 60
-        tables.reverse_each do |table|
-          position = calculate_table_position(table)
-          table.draw(image, x, y)
-          x = x + table.width + 30
-        end
-        # references.each()
-      end
-
-      def write_schema_image
-        raise "Dir not exist" unless Dir.exists?(output)
-
-        extension = options[:extension] || "png"
-        unless extension && EXTENSION_WHITE_LIST.include?(extension)
-          raise "Error file extension: #{extension}, only support #{EXTENSION_WHITE_LIST.join(',')}"
-        end
-
-        output_file = File.new("#{output}/db_schema_#{Time.now.to_i}.#{extension}", "w")
-        image.write("#{extension}:#{output_file.path}")
-      end
-
-      def sort_tables_by_score!
-        reference_count_map = references.each_with_object({}) do |reference, map|
-          key = reference.from
-          map[key] = (map[key] || 0) + 1
-        end
-
-        # r * 0.8 + w * 0.2
-        tables.sort_by! do |table|
-          (reference_count_map[table.name] || 0) * 0.8 + table.columns.size * 0.2
-        end
-      end
-
-      def calculate_table_position(table)
-        [100, 100]
+        Strategy.dispatch(self, options).generate
       end
   end
 end
