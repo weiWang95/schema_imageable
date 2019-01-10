@@ -19,14 +19,16 @@ module SchemaImageable
       TEXT_BEGIN_HEIGHT = (HEAD_HEIGHT + FONT_SIZE) / 2
       HEAD_MARGIN = 30
       BOTTOM_PADDING = 20
+      REFERENCE_PORT_MOVE_DISTANCE = 20
 
       attr_reader :name, :options, :columns
-      attr_accessor :position
+      attr_accessor :position, :reference_ports
 
       def initialize(name, **options)
         @name    = name
         @options = options
         @columns = []
+        @reference_ports = { left: [], right: [], top: [], bottom: [] }
       end
 
       def add_column(type, name, **options)
@@ -95,6 +97,27 @@ module SchemaImageable
       def include_position?(pos)
         pos.x >= position.x - 15 && pos.x <= position.x + width + 15 &&
           pos.y >= position.y - 15 && pos.y <= position.y + height + 15
+      end
+
+      def add_reference_port(direction)
+        port = calculate_new_reference_port_position(direction)
+        reference_ports[direction] << port
+        port
+      end
+
+      def calculate_new_reference_port_position(direction)
+        count = reference_ports[direction].size
+        operator = count.odd? ? :- : :+
+        move_times = count.odd? ? count / 2 + 1 : count / 2
+        distance = move_times * REFERENCE_PORT_MOVE_DISTANCE
+
+        start_position = instance_variable_get("@#{direction}_center")
+
+        case direction
+        when :left, :right then SchemaImageable::Position.new(start_position.x, start_position.y.send(operator, distance), direction)
+        when :top, :bottom then SchemaImageable::Position.new(start_position.x.send(operator, distance), start_position.y, direction)
+        else raise ArgumentError
+        end
       end
     end
   end
