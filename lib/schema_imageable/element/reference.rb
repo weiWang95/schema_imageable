@@ -18,7 +18,6 @@ module SchemaImageable
       def draw(image)
         return unless start && destination
 
-        # paths = PathFinder.new(schema.path_map, start, destination).find
         finder = SchemaImageable::PathFinder.new(schema.path_map, start.near_position, destination.near_position)
         paths = finder.find
 

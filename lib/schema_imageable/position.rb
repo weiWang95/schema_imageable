@@ -7,12 +7,13 @@ module SchemaImageable
       @direction = direction
     end
 
-    def near_position(distance = 20)
+    def near_position
+      @distance ||= [20, 25, 30].sample
       case direction
-      when :left   then self.class.new(x - distance, y           )
-      when :right  then self.class.new(x + distance, y           )
-      when :top    then self.class.new(x           , y - distance)
-      when :bottom then self.class.new(x           , y + distance)
+      when :left   then self.class.new(x - @distance, y            )
+      when :right  then self.class.new(x + @distance, y            )
+      when :top    then self.class.new(x            , y - @distance)
+      when :bottom then self.class.new(x            , y + @distance)
       end
     end
   end

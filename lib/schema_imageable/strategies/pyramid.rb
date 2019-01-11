@@ -28,7 +28,8 @@ module SchemaImageable
         end
 
         def calculate_image_dimension
-          width, height = MARGIN, 0
+          width  = MARGIN
+          height = layer_nodes.map { |nodes| nodes.sum { |node| node.table.height } + (nodes.size + 1) * MARGIN }.max
 
           layer_nodes.each_with_index do |nodes, _depth|
             next if nodes.nil? || nodes.empty?
@@ -37,7 +38,8 @@ module SchemaImageable
             deviation = nodes.size / 2
 
             width += max_width + deviation * 2 * MARGIN
-            x, y = width, MARGIN
+            x = width
+            y = (height - nodes.sum { |node| node.table.height } - (nodes.size - 1) * MARGIN) / 2
 
             distance = deviation * 2 * MARGIN / nodes.size
             deviation = 0 - deviation
@@ -51,7 +53,6 @@ module SchemaImageable
             end
 
             width += MARGIN
-            height = y if y > height
           end
 
           [width, height]
