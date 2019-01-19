@@ -1,6 +1,4 @@
 require_relative "position"
-require "byebug"
-
 
 module SchemaImageable
   class PathFinder

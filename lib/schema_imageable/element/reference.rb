@@ -1,4 +1,3 @@
-require "byebug"
 require_relative "../path_finder"
 
 module SchemaImageable

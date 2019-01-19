@@ -52,7 +52,7 @@ module SchemaImageable
               y += node.table.height + MARGIN
             end
 
-            width += MARGIN
+            width += 2 * MARGIN
           end
 
           [width, height]

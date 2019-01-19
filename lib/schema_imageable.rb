@@ -1,5 +1,4 @@
 require_relative "schema_imageable/schema"
-require "byebug"
 
 module SchemaImageable
   VERSION = "0.1.0"
