@@ -12,8 +12,11 @@ module SchemaImageable
       end
 
       def write(image)
-        output = options[:output] || "."
-        raise "Dir not exist" unless Dir.exists?(output)
+        output = options[:output] || "./tmp"
+
+        unless Dir.exists?(output)
+          Dir.mkdir(output)
+        end
 
         extension = options[:extension] || "png"
         unless extension && EXTENSION_WHITE_LIST.include?(extension)

@@ -8,7 +8,7 @@ module SchemaImageable
     end
 
     def near_position
-      @distance ||= [20, 25, 30].sample
+      @distance ||= [20, 25, 30, 35, 40, 45, 50].sample
       case direction
       when :left   then self.class.new(x - @distance, y            )
       when :right  then self.class.new(x + @distance, y            )
